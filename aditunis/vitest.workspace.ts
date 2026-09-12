@@ -22,4 +22,11 @@ export default defineWorkspace([
       include: ['packages/call-core/src/**/*.test.ts'],
     },
   },
+  {
+    test: {
+      name: 'gateway',
+      environment: 'node',
+      include: ['apps/gateway/src/**/*.test.ts'],
+    },
+  },
 ]);
