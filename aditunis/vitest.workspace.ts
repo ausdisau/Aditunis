@@ -8,4 +8,11 @@ export default defineWorkspace([
       include: ['packages/contracts/src/**/*.test.ts'],
     },
   },
+  {
+    test: {
+      name: 'accessibility-runtime',
+      environment: 'node',
+      include: ['packages/accessibility-runtime/src/**/*.test.ts'],
+    },
+  },
 ]);
