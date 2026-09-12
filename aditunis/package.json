@@ -5,7 +5,7 @@
   "engines": { "node": ">=22.13.0" },
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "build:deps": "npm run build -w @aditunis/contracts && npm run build -w @aditunis/accessibility-runtime && npm run build -w @aditunis/call-core",
+    "build:deps": "npm run build -w @aditunis/contracts && npm run build -w @aditunis/accessibility-runtime && npm run build -w @aditunis/call-core && npm run build -w @aditunis/twilio-adapter",
     "build": "npm run build:deps && npm run build -w @aditunis/gateway",
     "test": "npm run build:deps && vitest run --workspace vitest.workspace.ts",
     "test:watch": "vitest --workspace vitest.workspace.ts",

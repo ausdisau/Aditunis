@@ -12,5 +12,8 @@
   "dependencies": {
     "@aditunis/contracts": "0.1.0",
     "twilio": "^5.10.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5"
   }
 }
