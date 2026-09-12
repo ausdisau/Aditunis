@@ -49,6 +49,16 @@ describe('Aditunis gateway', () => {
     expect(response.body).not.toHaveProperty('providerCallId');
   });
 
+  it('requires an idempotency key for call creation', async () => {
+    const { app } = createHarness();
+    const response = await request(app)
+      .post('/v1/calls')
+      .set('X-Aditunis-Principal', 'user-1')
+      .send({ destination: '+61255501234', communicationMode: 'voice_text' });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('IDEMPOTENCY_KEY_REQUIRED');
+  });
+
   it.each(['000', '106', '112'])('blocks emergency number %s before provider invocation', async (number) => {
     const { app, provider } = createHarness();
     const response = await request(app)
@@ -63,6 +73,20 @@ describe('Aditunis gateway', () => {
       message: 'Emergency calling is not available in this prototype.',
     });
     expect(provider.createCallCount).toBe(0);
+  });
+
+  it('reads and ends a provider-neutral call', async () => {
+    const { app } = createHarness();
+    const callId = await createOutboundCall(app);
+
+    const read = await request(app).get(`/v1/calls/${callId}`);
+    expect(read.status).toBe(200);
+    expect(read.body.callId).toBe(callId);
+    expect(read.body).not.toHaveProperty('providerCallId');
+
+    const end = await request(app).post(`/v1/calls/${callId}/end`).send({ confirmed: true });
+    expect(end.status).toBe(200);
+    expect(end.body.state).toBe('ENDED');
   });
 
   it('supports an accessible sandbox incoming-call answer flow', async () => {
@@ -100,6 +124,14 @@ describe('Aditunis gateway', () => {
     expect(response.body.communicationMode).toBe('text');
     expect(response.body.capabilities).toMatchObject({ voice: true, text: true });
     expect(response.body).not.toHaveProperty('providerCallId');
+  });
+
+  it('returns provider-neutral call capabilities', async () => {
+    const { app } = createHarness();
+    const callId = await createOutboundCall(app);
+    const response = await request(app).get(`/v1/calls/${callId}/capabilities`);
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ voice: true, text: true, nativeRtt: false, tty: false, dtmf: true });
   });
 
   it('validates DTMF and requires confirmation for sensitive DTMF', async () => {
