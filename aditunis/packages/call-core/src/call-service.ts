@@ -222,6 +222,17 @@ export class CallService {
     await this.options.provider.sendDtmf(providerCallId, digits);
   }
 
+  async stopOutput(callId: string): Promise<void> {
+    const providerCallId = this.providerCallIds.get(callId);
+    if (!providerCallId) {
+      throw new Error('No provider media session is available for this call.');
+    }
+    if (!this.options.provider.stopOutput) {
+      throw new Error('Stopping queued output is unavailable from the selected provider.');
+    }
+    await this.options.provider.stopOutput(providerCallId);
+  }
+
   async capabilities(): Promise<ProviderCapabilities> {
     return this.options.provider.capabilities();
   }

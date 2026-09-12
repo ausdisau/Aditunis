@@ -6,6 +6,7 @@ import type {
   ProviderCapabilities,
   ProviderCreateCallInput,
 } from '@aditunis/contracts';
+import type { TwilioMediaController } from './media-registry.js';
 
 export interface TwilioCreateCallParams {
   to: string;
@@ -49,6 +50,7 @@ export interface TwilioProviderAdapterOptions {
   voiceUrl: string;
   statusCallbackUrl: string;
   allowedDestinations: readonly string[];
+  mediaController?: TwilioMediaController;
 }
 
 export class TwilioProviderAdapter implements ProviderAdapter {
@@ -95,6 +97,12 @@ export class TwilioProviderAdapter implements ProviderAdapter {
     throw new Error(
       'Outbound DTMF is not enabled for the Twilio Media Streams prototype.',
     );
+  }
+
+  async stopOutput(providerCallId: string): Promise<void> {
+    if (!this.options.mediaController?.clear(providerCallId)) {
+      throw new Error('No active Twilio media stream is available for this call.');
+    }
   }
 
   async capabilities(): Promise<ProviderCapabilities> {
