@@ -15,4 +15,11 @@ export default defineWorkspace([
       include: ['packages/accessibility-runtime/src/**/*.test.ts'],
     },
   },
+  {
+    test: {
+      name: 'call-core',
+      environment: 'node',
+      include: ['packages/call-core/src/**/*.test.ts'],
+    },
+  },
 ]);
