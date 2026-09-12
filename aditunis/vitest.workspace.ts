@@ -24,6 +24,13 @@ export default defineWorkspace([
   },
   {
     test: {
+      name: 'twilio-adapter',
+      environment: 'node',
+      include: ['packages/twilio-adapter/src/**/*.test.ts'],
+    },
+  },
+  {
+    test: {
       name: 'gateway',
       environment: 'node',
       include: ['apps/gateway/src/**/*.test.ts'],
