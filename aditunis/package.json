@@ -1,0 +1,17 @@
+{
+  "name": "aditunis",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.13.0" },
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "vitest run --workspace vitest.workspace.ts",
+    "test:watch": "vitest --workspace vitest.workspace.ts",
+    "lint:types": "npm run lint:types --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.4"
+  }
+}
