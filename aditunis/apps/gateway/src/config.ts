@@ -80,6 +80,11 @@ export function loadGatewayConfig(env: GatewayEnvironment): GatewayConfig {
     throw new Error(`Unsupported ADITUNIS_PROVIDER: ${provider}`);
   }
 
+  const accountSid = requireValue(env, 'TWILIO_ACCOUNT_SID');
+  const apiKey = requireValue(env, 'TWILIO_API_KEY');
+  const apiSecret = requireValue(env, 'TWILIO_API_SECRET');
+  const authToken = requireValue(env, 'TWILIO_AUTH_TOKEN');
+  const fromNumber = requireValue(env, 'TWILIO_FROM_NUMBER');
   const publicBaseUrl = requireProtocol(
     requireValue(env, 'ADITUNIS_PUBLIC_BASE_URL'),
     'https:',
@@ -90,6 +95,9 @@ export function loadGatewayConfig(env: GatewayEnvironment): GatewayConfig {
     'wss:',
     'TWILIO_MEDIA_WSS_URL',
   );
+  const allowedDestinations = parseDestinationAllowlist(
+    requireValue(env, 'ADITUNIS_TWILIO_ALLOWED_DESTINATIONS'),
+  );
 
   return {
     provider,
@@ -97,15 +105,13 @@ export function loadGatewayConfig(env: GatewayEnvironment): GatewayConfig {
     port,
     publicBaseUrl,
     twilio: {
-      accountSid: requireValue(env, 'TWILIO_ACCOUNT_SID'),
-      apiKey: requireValue(env, 'TWILIO_API_KEY'),
-      apiSecret: requireValue(env, 'TWILIO_API_SECRET'),
-      authToken: requireValue(env, 'TWILIO_AUTH_TOKEN'),
-      fromNumber: requireValue(env, 'TWILIO_FROM_NUMBER'),
+      accountSid,
+      apiKey,
+      apiSecret,
+      authToken,
+      fromNumber,
       mediaWssUrl,
-      allowedDestinations: parseDestinationAllowlist(
-        requireValue(env, 'ADITUNIS_TWILIO_ALLOWED_DESTINATIONS'),
-      ),
+      allowedDestinations,
     },
   };
 }
