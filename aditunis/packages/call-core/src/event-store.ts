@@ -1,9 +1,11 @@
 import type { AditunisEvent, AditunisEventType } from '@aditunis/contracts';
 
 export type EventClock = () => string;
+export type EventListener = (event: AditunisEvent) => void;
 
 export class InMemoryEventStore {
   private readonly events = new Map<string, AditunisEvent[]>();
+  private readonly listeners = new Map<string, Set<EventListener>>();
 
   constructor(
     private readonly clock: EventClock = () => new Date().toISOString(),
@@ -26,6 +28,11 @@ export class InMemoryEventStore {
     };
     existing.push(event as AditunisEvent);
     this.events.set(callId, existing);
+
+    for (const listener of this.listeners.get(callId) ?? []) {
+      listener(event as AditunisEvent);
+    }
+
     return event;
   }
 
@@ -37,5 +44,19 @@ export class InMemoryEventStore {
 
   all(callId: string): AditunisEvent[] {
     return [...(this.events.get(callId) ?? [])];
+  }
+
+  subscribe(callId: string, listener: EventListener): () => void {
+    const listeners = this.listeners.get(callId) ?? new Set<EventListener>();
+    listeners.add(listener);
+    this.listeners.set(callId, listeners);
+
+    return () => {
+      const current = this.listeners.get(callId);
+      current?.delete(listener);
+      if (current?.size === 0) {
+        this.listeners.delete(callId);
+      }
+    };
   }
 }

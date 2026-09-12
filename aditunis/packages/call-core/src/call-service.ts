@@ -1,7 +1,9 @@
 import type {
+  AditunisEventType,
   CallSnapshot,
   CommunicationMode,
   ProviderAdapter,
+  ProviderCapabilities,
 } from '@aditunis/contracts';
 import { assertDestinationAllowed } from './destination-policy.js';
 import { InMemoryEventStore } from './event-store.js';
@@ -28,6 +30,11 @@ export interface CallServiceOptions {
   rateLimiter: InMemoryCallRateLimiter;
   idFactory?: () => string;
   clock?: () => string;
+}
+
+export interface ModeChangeResult {
+  call: CallSnapshot;
+  capabilities: ProviderCapabilities;
 }
 
 export class CallService {
@@ -111,6 +118,62 @@ export class CallService {
     return this.transition(callId, 'RINGING', 'call.ringing');
   }
 
+  async answerCall(callId: string): Promise<CallSnapshot> {
+    const providerCallId = this.providerCallIds.get(callId);
+    if (providerCallId && this.options.provider.answerCall) {
+      await this.options.provider.answerCall(providerCallId);
+    }
+    return this.transition(callId, 'CONNECTED', 'call.connected');
+  }
+
+  async endCall(callId: string): Promise<CallSnapshot> {
+    let call = this.requireCall(callId);
+    if (call.state === 'ENDED') {
+      return call;
+    }
+
+    call = this.transition(callId, 'TERMINATING');
+    const providerCallId = this.providerCallIds.get(callId);
+    if (providerCallId) {
+      await this.options.provider.endCall(providerCallId);
+    }
+    call = this.transition(callId, 'ENDED', 'call.ended');
+    return call;
+  }
+
+  async changeMode(callId: string, communicationMode: CommunicationMode): Promise<ModeChangeResult> {
+    const current = this.requireCall(callId);
+    this.options.eventStore.append(callId, 'mode.requested', { communicationMode });
+    const providerCallId = this.providerCallIds.get(callId);
+    const capabilities = providerCallId && this.options.provider.changeMode
+      ? await this.options.provider.changeMode(providerCallId, communicationMode)
+      : await this.options.provider.capabilities();
+
+    const updated: CallSnapshot = {
+      ...current,
+      communicationMode,
+      updatedAt: this.clock(),
+    };
+    this.calls.set(callId, updated);
+    this.options.eventStore.append(callId, 'mode.changed', { communicationMode });
+    return { call: { ...updated }, capabilities };
+  }
+
+  async sendDtmf(callId: string, digits: string): Promise<void> {
+    const providerCallId = this.providerCallIds.get(callId);
+    if (!providerCallId) {
+      throw new Error('DTMF is unavailable for this sandbox call.');
+    }
+    if (!this.options.provider.sendDtmf) {
+      throw new Error('DTMF is unavailable from the selected provider.');
+    }
+    await this.options.provider.sendDtmf(providerCallId, digits);
+  }
+
+  async capabilities(): Promise<ProviderCapabilities> {
+    return this.options.provider.capabilities();
+  }
+
   getCall(callId: string): CallSnapshot | undefined {
     const call = this.calls.get(callId);
     return call ? { ...call } : undefined;
@@ -131,7 +194,7 @@ export class CallService {
   private transition(
     callId: string,
     nextState: CallSnapshot['state'],
-    eventType: 'call.authorised' | 'call.dialing' | 'call.ringing',
+    eventType?: AditunisEventType,
   ): CallSnapshot {
     const current = this.requireCall(callId);
     const state = transitionCallState(current.state, nextState);
@@ -141,7 +204,9 @@ export class CallService {
       updatedAt: this.clock(),
     };
     this.calls.set(callId, updated);
-    this.options.eventStore.append(callId, eventType, { state });
+    if (eventType) {
+      this.options.eventStore.append(callId, eventType, { state });
+    }
     return { ...updated };
   }
 }
