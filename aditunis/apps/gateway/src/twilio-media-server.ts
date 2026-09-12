@@ -1,3 +1,4 @@
+import twilio from 'twilio';
 import {
   decodeTwilioMulaw,
   parseTwilioMediaEvent,
@@ -90,4 +91,23 @@ export function isTwilioMediaUpgradePath(requestUrl: string | undefined): boolea
   } catch {
     return false;
   }
+}
+
+export interface ValidateTwilioMediaUpgradeInput {
+  authToken: string;
+  mediaWssUrl: string;
+  signature: string | undefined;
+}
+
+export function validateTwilioMediaUpgrade(
+  input: ValidateTwilioMediaUpgradeInput,
+): boolean {
+  if (!input.signature) return false;
+
+  return twilio.validateRequest(
+    input.authToken,
+    input.signature,
+    input.mediaWssUrl,
+    {},
+  );
 }
