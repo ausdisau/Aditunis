@@ -8,7 +8,7 @@
     "build": "npm run build --workspaces --if-present",
     "test": "vitest run --workspace vitest.workspace.ts",
     "test:watch": "vitest --workspace vitest.workspace.ts",
-    "lint:types": "npm run build -w @aditunis/contracts && npm run lint:types --workspaces --if-present"
+    "lint:types": "npm run build -w @aditunis/contracts && npm run build -w @aditunis/accessibility-runtime && npm run lint:types --workspaces --if-present"
   },
   "devDependencies": {
     "typescript": "^5.9.0",
