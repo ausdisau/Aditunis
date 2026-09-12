@@ -1,0 +1,28 @@
+name: Aditunis ML CI
+
+on:
+  push:
+    branches:
+      - feature/aditunis-speech-training
+    paths:
+      - 'aditunis/ml/**'
+      - '.github/workflows/aditunis-ml-ci.yml'
+  pull_request:
+    paths:
+      - 'aditunis/ml/**'
+      - '.github/workflows/aditunis-ml-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest jiwer numpy 'transformers>=4.57,<6'
+      - name: Run ML unit tests
+        env:
+          PYTHONPATH: aditunis/ml
+        run: pytest -q aditunis/ml/tests
