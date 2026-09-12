@@ -1,9 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
-import {
-  DestinationPolicyError,
-  type CallService,
-} from '@aditunis/call-core';
+import type { CallService } from '@aditunis/call-core';
 
 const createCallSchema = z.object({
   destination: z.string().min(1),
@@ -41,9 +38,15 @@ function principalFor(req: Request, res: Response, nodeEnv: string): string {
   return req.ip || 'anonymous';
 }
 
+function hasErrorCode(error: unknown, code: string): error is Error & { code: string } {
+  return error instanceof Error &&
+    'code' in error &&
+    (error as Error & { code?: unknown }).code === code;
+}
+
 function sendError(res: Response, error: unknown): void {
-  if (error instanceof DestinationPolicyError) {
-    res.status(403).json({ code: error.code, message: error.message });
+  if (hasErrorCode(error, 'POLICY_BLOCKED')) {
+    res.status(403).json({ code: 'POLICY_BLOCKED', message: error.message });
     return;
   }
 
