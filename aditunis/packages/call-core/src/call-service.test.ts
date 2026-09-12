@@ -128,4 +128,17 @@ describe('CallService', () => {
       payload: { reason: 'Unknown provider status' },
     });
   });
+
+  it('routes STOP_OUTPUT through the provider-neutral adapter', async () => {
+    const { service, provider } = createService();
+    const call = await service.createCall({
+      principal: 'user-1',
+      destination: '+61255501234',
+      communicationMode: 'voice_text',
+      idempotencyKey: 'stop-1',
+    });
+
+    await service.stopOutput(call.callId);
+    expect(provider.stoppedOutputCallIds).toEqual([`fake_${call.callId}`]);
+  });
 });

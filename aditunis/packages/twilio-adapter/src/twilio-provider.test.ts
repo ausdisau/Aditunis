@@ -4,6 +4,7 @@ import { TwilioProviderAdapter, type TwilioCallsApi } from './twilio-provider.js
 function createHarness(allowedDestinations = ['+61255501234']) {
   const create = vi.fn(async () => ({ sid: 'CA123' }));
   const complete = vi.fn(async () => undefined);
+  const clear = vi.fn(() => true);
   const callsApi: TwilioCallsApi = { create, complete };
   const provider = new TwilioProviderAdapter({
     callsApi,
@@ -11,8 +12,9 @@ function createHarness(allowedDestinations = ['+61255501234']) {
     voiceUrl: 'https://gateway.aditunis.example/providers/twilio/voice',
     statusCallbackUrl: 'https://gateway.aditunis.example/providers/twilio/status',
     allowedDestinations,
+    mediaController: { clear },
   });
-  return { provider, create, complete };
+  return { provider, create, complete, clear };
 }
 
 describe('TwilioProviderAdapter', () => {
@@ -49,6 +51,12 @@ describe('TwilioProviderAdapter', () => {
     const { provider, complete } = createHarness();
     await provider.endCall('CA123');
     expect(complete).toHaveBeenCalledWith('CA123');
+  });
+
+  it('clears queued Media Streams audio for STOP_OUTPUT', async () => {
+    const { provider, clear } = createHarness();
+    await provider.stopOutput('CA123');
+    expect(clear).toHaveBeenCalledWith('CA123');
   });
 
   it('reports only capabilities this adapter can actually provide', async () => {
