@@ -1,3 +1,4 @@
+import twilio from 'twilio';
 import { describe, expect, it, vi } from 'vitest';
 import {
   encodeTwilioMulaw,
@@ -6,6 +7,7 @@ import {
 import {
   isTwilioMediaUpgradePath,
   TwilioMediaConnection,
+  validateTwilioMediaUpgrade,
 } from './twilio-media-server.js';
 
 describe('TwilioMediaConnection', () => {
@@ -97,5 +99,18 @@ describe('Twilio media upgrade route', () => {
     expect(isTwilioMediaUpgradePath('/providers/twilio/media?token=ignored')).toBe(true);
     expect(isTwilioMediaUpgradePath('/v1/events')).toBe(false);
     expect(isTwilioMediaUpgradePath('/providers/twilio/status')).toBe(false);
+  });
+
+  it('validates the WebSocket handshake with the official Twilio signature algorithm', () => {
+    const authToken = 'test_auth_token';
+    const mediaWssUrl = 'wss://media.aditunis.example/providers/twilio/media';
+    const signature = twilio.getExpectedTwilioSignature(authToken, mediaWssUrl, {});
+
+    expect(validateTwilioMediaUpgrade({ authToken, mediaWssUrl, signature })).toBe(true);
+    expect(validateTwilioMediaUpgrade({
+      authToken,
+      mediaWssUrl,
+      signature: 'forged-signature',
+    })).toBe(false);
   });
 });
