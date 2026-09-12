@@ -1,6 +1,8 @@
 import type {
   AditunisEventType,
+  CallFailureReason,
   CallSnapshot,
+  CallState,
   CommunicationMode,
   ProviderAdapter,
   ProviderCapabilities,
@@ -23,6 +25,15 @@ export interface IncomingSandboxCallInput {
   communicationMode: CommunicationMode;
 }
 
+export interface IncomingProviderCallInput extends IncomingSandboxCallInput {
+  providerCallId: string;
+}
+
+export interface ProviderStateUpdate {
+  state: CallState;
+  failureReason?: CallFailureReason;
+}
+
 export interface CallServiceOptions {
   provider: ProviderAdapter;
   eventStore: InMemoryEventStore;
@@ -40,6 +51,7 @@ export interface ModeChangeResult {
 export class CallService {
   private readonly calls = new Map<string, CallSnapshot>();
   private readonly providerCallIds = new Map<string, string>();
+  private readonly callIdsByProvider = new Map<string, string>();
   private readonly idFactory: () => string;
   private readonly clock: () => string;
 
@@ -88,7 +100,7 @@ export class CallService {
       destination: input.destination,
       communicationMode: input.communicationMode,
     });
-    this.providerCallIds.set(callId, providerResult.providerCallId);
+    this.bindProviderCall(callId, providerResult.providerCallId);
 
     call = this.transition(callId, 'DIALING', 'call.dialing');
     this.options.idempotencyStore.set(
@@ -101,21 +113,61 @@ export class CallService {
   }
 
   createIncomingSandboxCall(input: IncomingSandboxCallInput): CallSnapshot {
-    const callId = this.idFactory();
-    const createdAt = this.clock();
-    const initial: CallSnapshot = {
-      callId,
-      direction: 'inbound',
-      destination: input.from,
-      state: 'NEW',
-      communicationMode: input.communicationMode,
-      failureReason: null,
-      createdAt,
-      updatedAt: createdAt,
+    return this.createIncomingCall(input);
+  }
+
+  registerIncomingProviderCall(input: IncomingProviderCallInput): CallSnapshot {
+    const existingCallId = this.callIdsByProvider.get(input.providerCallId);
+    if (existingCallId) {
+      return this.requireCall(existingCallId);
+    }
+
+    const call = this.createIncomingCall(input);
+    this.bindProviderCall(call.callId, input.providerCallId);
+    return call;
+  }
+
+  callIdForProvider(providerCallId: string): string | undefined {
+    return this.callIdsByProvider.get(providerCallId);
+  }
+
+  applyProviderState(
+    providerCallId: string,
+    update: ProviderStateUpdate,
+  ): CallSnapshot {
+    const callId = this.requireCallIdForProvider(providerCallId);
+    const current = this.requireCall(callId);
+
+    if (current.state !== update.state) {
+      transitionCallState(current.state, update.state);
+    }
+
+    const updated: CallSnapshot = {
+      ...current,
+      state: update.state,
+      failureReason: update.failureReason ?? current.failureReason,
+      updatedAt: this.clock(),
     };
-    this.calls.set(callId, initial);
-    this.options.eventStore.append(callId, 'call.created', { state: initial.state });
-    return this.transition(callId, 'RINGING', 'call.ringing');
+    this.calls.set(callId, updated);
+
+    if (update.failureReason) {
+      this.options.eventStore.append(callId, 'call.failed', {
+        state: update.state,
+        failureReason: update.failureReason,
+      });
+    } else if (current.state !== update.state) {
+      const eventType = this.eventTypeForState(update.state, current.state);
+      if (eventType) {
+        this.options.eventStore.append(callId, eventType, { state: update.state });
+      }
+    }
+
+    return { ...updated };
+  }
+
+  markProviderDegraded(providerCallId: string, reason: string): void {
+    const callId = this.requireCallIdForProvider(providerCallId);
+    this.options.eventStore.append(callId, 'provider.degraded', { reason });
   }
 
   async answerCall(callId: string): Promise<CallSnapshot> {
@@ -183,6 +235,37 @@ export class CallService {
     return this.providerCallIds.get(callId);
   }
 
+  private createIncomingCall(input: IncomingSandboxCallInput): CallSnapshot {
+    const callId = this.idFactory();
+    const createdAt = this.clock();
+    const initial: CallSnapshot = {
+      callId,
+      direction: 'inbound',
+      destination: input.from,
+      state: 'NEW',
+      communicationMode: input.communicationMode,
+      failureReason: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    this.calls.set(callId, initial);
+    this.options.eventStore.append(callId, 'call.created', { state: initial.state });
+    return this.transition(callId, 'RINGING', 'call.ringing');
+  }
+
+  private bindProviderCall(callId: string, providerCallId: string): void {
+    this.providerCallIds.set(callId, providerCallId);
+    this.callIdsByProvider.set(providerCallId, callId);
+  }
+
+  private requireCallIdForProvider(providerCallId: string): string {
+    const callId = this.callIdsByProvider.get(providerCallId);
+    if (!callId) {
+      throw new Error(`Unknown provider call: ${providerCallId}`);
+    }
+    return callId;
+  }
+
   private requireCall(callId: string): CallSnapshot {
     const call = this.calls.get(callId);
     if (!call) {
@@ -208,5 +291,20 @@ export class CallService {
       this.options.eventStore.append(callId, eventType, { state });
     }
     return { ...updated };
+  }
+
+  private eventTypeForState(
+    state: CallState,
+    previousState: CallState,
+  ): AditunisEventType | undefined {
+    switch (state) {
+      case 'DIALING': return 'call.dialing';
+      case 'RINGING': return 'call.ringing';
+      case 'CONNECTED': return 'call.connected';
+      case 'HELD': return 'call.held';
+      case 'ACTIVE': return previousState === 'HELD' ? 'call.resumed' : undefined;
+      case 'ENDED': return 'call.ended';
+      default: return undefined;
+    }
   }
 }
