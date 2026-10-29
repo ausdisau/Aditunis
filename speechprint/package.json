@@ -1,0 +1,20 @@
+{
+  "name": "adtunis-speechprint",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/mobile",
+    "apps/review-desktop"
+  ],
+  "scripts": {
+    "test:core": "vitest run packages/core/test",
+    "typecheck:core": "tsc --noEmit -p packages/core/tsconfig.json",
+    "dev:mobile": "npm --workspace @adtunis/speechprint-mobile start",
+    "dev:review": "npm --workspace @adtunis/speechprint-review dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

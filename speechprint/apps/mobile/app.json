@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Adtunis SpeechPrint",
+    "slug": "adtunis-speechprint",
+    "scheme": "speechprint",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "org.australiandisability.speechprint",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "SpeechPrint records only when you choose to record. It encrypts retained audio on the device and does not automatically upload recordings.",
+        "UIFileSharingEnabled": false,
+        "LSSupportsOpeningDocumentsInPlace": false
+      }
+    },
+    "android": {
+      "package": "org.australiandisability.speechprint",
+      "permissions": [
+        "RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow SpeechPrint to record speech you choose to keep on this device.",
+          "enableBackgroundRecording": false
+        }
+      ],
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
+        }
+      ]
+    ],
+    "extra": {
+      "releaseStage": "research-prototype",
+      "externalAudioUploadEnabled": false
+    }
+  }
+}
