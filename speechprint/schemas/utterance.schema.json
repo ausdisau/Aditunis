@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:adtunis:speechprint:utterance:v1",
+  "title": "SpeechPrint consent-gated utterance manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "utterance_id",
+    "speaker_id",
+    "session_id",
+    "dataset_id",
+    "synthetic",
+    "split",
+    "language_tag",
+    "task_type",
+    "audio",
+    "transcript",
+    "rights"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "utterance_id": {
+      "type": "string",
+      "pattern": "^utt_[a-zA-Z0-9_-]{4,80}$"
+    },
+    "speaker_id": {
+      "type": "string",
+      "pattern": "^spk_[a-zA-Z0-9_-]{4,80}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^ses_[a-zA-Z0-9_-]{4,80}$"
+    },
+    "dataset_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_id": {
+      "type": "string"
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "split": {
+      "type": "string",
+      "enum": [
+        "train",
+        "dev",
+        "test",
+        "personal_enrolment",
+        "personal_test"
+      ]
+    },
+    "language_tag": {
+      "type": "string",
+      "minLength": 2
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "read_word",
+        "read_sentence",
+        "command",
+        "conversation",
+        "spontaneous",
+        "repetition"
+      ]
+    },
+    "audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "secure_ref",
+        "sample_rate_hz",
+        "duration_s"
+      ],
+      "properties": {
+        "secure_ref": {
+          "type": "string",
+          "pattern": "^(vault|secure)://",
+          "description": "Private store reference only. Never a public HTTP(S) URL."
+        },
+        "sample_rate_hz": {
+          "type": "integer",
+          "minimum": 8000,
+          "maximum": 192000
+        },
+        "duration_s": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 600
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "channel_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        }
+      }
+    },
+    "transcript": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "verification"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification": {
+          "type": "string",
+          "enum": [
+            "speaker_verified",
+            "annotator_verified",
+            "double_checked",
+            "provisional",
+            "synthetic_example"
+          ]
+        },
+        "annotator_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "uncertainty_spans": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "start_char",
+              "end_char"
+            ],
+            "properties": {
+              "start_char": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "end_char": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "microphone_type": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "posture": {
+          "type": "string"
+        },
+        "fatigue_reported": {
+          "type": "string",
+          "enum": [
+            "yes",
+            "no",
+            "not_asked"
+          ]
+        },
+        "speaker_selected_task": {
+          "type": "boolean"
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "consent_status",
+        "rights_review",
+        "allowed_uses",
+        "consent_record_ref",
+        "source_dataset"
+      ],
+      "properties": {
+        "consent_status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "withdrawn",
+            "expired",
+            "not_applicable_synthetic"
+          ]
+        },
+        "rights_review": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "pending",
+            "denied",
+            "not_applicable_synthetic"
+          ]
+        },
+        "allowed_uses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "asr_train",
+              "asr_evaluate",
+              "local_personalisation",
+              "research_analysis",
+              "no_distribution"
+            ]
+          }
+        },
+        "consent_record_ref": {
+          "type": "string"
+        },
+        "source_dataset": {
+          "type": "string"
+        },
+        "licence_or_dua_ref": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "synthetic": {
+            "const": false
+          }
+        },
+        "required": [
+          "synthetic"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rights": {
+            "properties": {
+              "consent_status": {
+                "const": "active"
+              },
+              "rights_review": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "consent_status",
+              "rights_review"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "description": "Speaker-held-out test/development partitions are validated at corpus level; JSON Schema alone cannot prevent cross-recording leakage."
+}

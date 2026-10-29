@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "profile_synthetic01",
+  "speaker_id": "spk_synthetic01",
+  "language_tags": [
+    "en-AU"
+  ],
+  "clinical_context": {
+    "diagnoses": [
+      {
+        "label": "Not disclosed",
+        "provenance": "participant_report",
+        "clinician_reviewed": false
+      }
+    ],
+    "dysarthria_clinical_type": "not_assessed"
+  },
+  "speech_observations": [
+    {
+      "feature_code": "speech_rate",
+      "subsystem": "prosody",
+      "value": "variable within session",
+      "method": "perceptual",
+      "source": "researcher_hypothesis",
+      "session_id": "ses_synthetic01"
+    },
+    {
+      "feature_code": "consonant_precision",
+      "subsystem": "articulation",
+      "value": "variable in this invented example",
+      "method": "perceptual",
+      "source": "researcher_hypothesis",
+      "session_id": "ses_synthetic01"
+    }
+  ],
+  "access_preferences": {
+    "correction_modes": [
+      "tap",
+      "keyboard"
+    ],
+    "aac_fallback": true,
+    "response_time_ms": 5000,
+    "interface_language": "en-AU",
+    "captions_enabled": true
+  }
+}
