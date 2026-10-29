@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "utterance_id": "utt_synthetic01",
+  "speaker_id": "spk_synthetic01",
+  "session_id": "ses_synthetic01",
+  "dataset_id": "speechprint-synthetic-example",
+  "profile_id": "profile_synthetic01",
+  "synthetic": true,
+  "split": "train",
+  "language_tag": "en-AU",
+  "task_type": "command",
+  "audio": {
+    "secure_ref": "vault://synthetic/no-audio-provided.wav",
+    "sample_rate_hz": 16000,
+    "duration_s": 2.2,
+    "channel_count": 1
+  },
+  "transcript": {
+    "text": "Please open my messages",
+    "verification": "synthetic_example",
+    "annotator_count": 0
+  },
+  "context": {
+    "microphone_type": "illustrative-only",
+    "environment": "illustrative-only",
+    "fatigue_reported": "not_asked",
+    "speaker_selected_task": true
+  },
+  "rights": {
+    "consent_status": "not_applicable_synthetic",
+    "rights_review": "not_applicable_synthetic",
+    "allowed_uses": [],
+    "consent_record_ref": "synthetic-no-consent",
+    "source_dataset": "speechprint-synthetic-example"
+  }
+}

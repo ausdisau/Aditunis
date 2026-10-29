@@ -1,0 +1,132 @@
+{
+  "ontology_version": "1.0.0",
+  "name": "Adtunis SpeechPrint multi-axis ontology",
+  "purpose": "Describe speech for accessibility and speech recognition. Not a diagnostic classifier.",
+  "rules": [
+    "Never infer cerebral palsy, cognitive capacity, etiology, or dysarthria subtype from a voice sample.",
+    "Diagnosis, motor presentation, dysarthria type, impairment observation, and communication participation are separate axes.",
+    "A person may have cerebral palsy without dysarthria and may have several speech or language conditions.",
+    "Use unknown/not_assessed rather than filling missing clinical labels from stereotypes.",
+    "Feature observations are time-, context-, and method-specific."
+  ],
+  "diagnosis_families": [
+    {
+      "id": "cerebral_palsy",
+      "label": "Cerebral palsy",
+      "relation": "Clinical context; optional, with recorded source"
+    },
+    {
+      "id": "motor_neurone_disease",
+      "label": "Motor neurone disease / ALS",
+      "relation": "Possible future cohort; do not merge clinically with CP"
+    },
+    {
+      "id": "parkinsonian_disorders",
+      "label": "Parkinsonian disorders",
+      "relation": "Possible future cohort"
+    },
+    {
+      "id": "acquired_brain_injury",
+      "label": "Acquired brain injury / stroke",
+      "relation": "Possible future cohort"
+    },
+    {
+      "id": "other",
+      "label": "Other or multiple conditions",
+      "relation": "Open-set metadata; clinician/participant supplied"
+    },
+    {
+      "id": "not_disclosed",
+      "label": "Not disclosed",
+      "relation": "A valid choice"
+    }
+  ],
+  "cp_motor_presentation": [
+    "spastic",
+    "dyskinetic_dystonic",
+    "dyskinetic_choreoathetoid",
+    "ataxic",
+    "mixed",
+    "not_recorded"
+  ],
+  "dysarthria_clinical_type": [
+    "spastic",
+    "flaccid",
+    "ataxic",
+    "hypokinetic",
+    "hyperkinetic",
+    "unilateral_umn",
+    "mixed",
+    "undetermined",
+    "no_dysarthria",
+    "not_assessed"
+  ],
+  "speech_subsystems": {
+    "articulation": [
+      "consonant_precision",
+      "vowel_distortion",
+      "sound_omission",
+      "sound_substitution",
+      "sound_addition",
+      "phoneme_duration",
+      "consistency_of_production"
+    ],
+    "phonation": [
+      "loudness_variability",
+      "voice_strain",
+      "breathiness",
+      "pitch_variation",
+      "voice_breaks",
+      "phonation_stability"
+    ],
+    "prosody": [
+      "speech_rate",
+      "stress_contrast",
+      "rhythm_irregularity",
+      "intonation_range",
+      "pause_location",
+      "pause_duration"
+    ],
+    "resonance": [
+      "hypernasality",
+      "hyponasality",
+      "nasal_emission"
+    ],
+    "respiration": [
+      "phrase_length",
+      "breath_group_duration",
+      "speech_breath_coordination",
+      "audible_inspiration"
+    ]
+  },
+  "functional_context": [
+    "familiar_listener",
+    "unfamiliar_listener",
+    "device_mic",
+    "phone_call",
+    "classroom",
+    "home",
+    "outdoor_noise",
+    "fatigue_reported",
+    "posture",
+    "time_of_day"
+  ],
+  "participant_preferences": [
+    "extra_response_time",
+    "correction_controls",
+    "preferred_output",
+    "preferred_language",
+    "custom_vocabulary",
+    "aac_fallback",
+    "no_autocomplete"
+  ],
+  "label_provenance": [
+    "participant_report",
+    "speech_pathologist",
+    "trained_annotator",
+    "instrument_measurement",
+    "researcher_hypothesis"
+  ],
+  "severity_rule": "Optional per-feature ordinal annotations must specify scale, method, rater, date, and confidence; not comparable across cohorts without calibration.",
+  "diagnostic_crosswalk_warning": "CP motor type and dysarthria type are not interchangeable. CFCS measures real-world communication effectiveness across all modalities and is not an ASR difficulty score."
+}

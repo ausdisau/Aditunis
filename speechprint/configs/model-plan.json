@@ -1,0 +1,66 @@
+{
+  "plan_version": "1.0.0",
+  "status": "PROPOSED_NOT_TRAINED",
+  "purpose": "Personalised dysarthric automatic speech recognition for user-controlled communication, not clinical diagnosis",
+  "candidates": [
+    {
+      "id": "openai/whisper-small",
+      "role": "General-purpose multilingual ASR baseline; check current license/runtime requirements"
+    },
+    {
+      "id": "jmaczan/wav2vec2-large-xls-r-300m-dysarthria",
+      "role": "Research comparator only; model card does not establish generalisability or provenance of underlying training examples"
+    }
+  ],
+  "development_stages": [
+    {
+      "stage": "0",
+      "action": "Record baseline WER, CER and keyword error rates on approved CP-specific held-out speakers"
+    },
+    {
+      "stage": "1",
+      "action": "Train a pooled adapter on rights-approved dysarthric speech, keep typical-speech replay set"
+    },
+    {
+      "stage": "2",
+      "action": "Personalise per speaker with opt-in encrypted adapter or lexicon, hold out subsequent sessions"
+    },
+    {
+      "stage": "3",
+      "action": "Evaluate real-world voice commands, spontaneous conversation, fatigue and microphone shifts"
+    },
+    {
+      "stage": "4",
+      "action": "Pilot with disabled co-designers and speech-language pathologists before any production claims"
+    }
+  ],
+  "split_strategy": {
+    "population": "speaker-disjoint train/dev/test; stratify on consented clinical and language labels",
+    "personalisation": "per-participant earlier-session enrolment vs later unseen personal_test",
+    "leakage_checks": [
+      "speaker ID overlap",
+      "recording duplication",
+      "prompt overlap analysis",
+      "synthetic-vs-real provenance"
+    ]
+  },
+  "core_metrics": [
+    "word_error_rate",
+    "character_error_rate",
+    "critical_command_false_accept_rate",
+    "critical_command_false_reject_rate",
+    "per_person_error_distribution",
+    "latency_p95",
+    "correction_effort",
+    "privacy_withdrawal_time"
+  ],
+  "promotion_gates": [
+    "No raw participant audio in public Git repositories",
+    "Signed or recorded consent for specific uses, rights reviewed",
+    "No clinical diagnostic output",
+    "Clinician and lived-experience review",
+    "Performance stratified by speaker and meaningful access contexts",
+    "Baseline comparison and prospective evaluation complete"
+  ],
+  "note": "No weights have been trained, no external speech recordings imported, no model has been evaluated in this repository."
+}
